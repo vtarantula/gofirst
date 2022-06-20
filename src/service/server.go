@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	gfconfig "gofirst/pkg/config/webserver"
-	gfutil "gofirst/pkg/util"
-	gflog "gofirst/pkg/util/log"
-	gfnet "gofirst/pkg/util/net"
+	gfconfig "gofirst/src/config/webserver"
+	gfutil "gofirst/src/util"
+	gflog "gofirst/src/util/log"
+	gfnet "gofirst/src/util/net"
+	"html/template"
 	"io"
 	"net"
 	"net/http"
@@ -34,10 +35,17 @@ type Pagestruct struct {
 }
 
 func movie(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("src/config/webserver/html/index.html"))
+	address := GetServerAddress()
+	tmpl.Execute(w, address)
+}
+
+func movie_test(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	str_message := fmt.Sprintf("got /movies request %v", ctx.Value(keyServerAddr))
 	gflog.Info(str_message)
 
+	// TODO: Have a database of movies and videos
 	fd, err := os.Open("/home/asn/small.mp4")
 
 	if err != nil {
@@ -46,7 +54,7 @@ func movie(w http.ResponseWriter, r *http.Request) {
 	}
 	defer fd.Close()
 
-	w.Header().Add("Content-Type", "video/mp4")
+	// w.Header().Add("Content-Type", "video/mp4")
 
 	buff := make([]byte, gfutil.DEFAULT_BUFFER_SIZE)
 	for {
@@ -66,11 +74,12 @@ func getHandler() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", test)
 	mux.HandleFunc("/movies", movie)
-	// mux.HandleFunc("/movie_korean", movie_korean)
+	mux.HandleFunc("/movie_test", movie_test)
 	return mux
 }
 
-func startServer(address string, mux *http.ServeMux) error {
+func startServer(mux *http.ServeMux) error {
+	address := GetServerAddress()
 	str_msg := fmt.Sprintf("Starting webserver on %s to accept requests...", address)
 	gflog.Info(str_msg)
 
@@ -102,12 +111,16 @@ func startServer(address string, mux *http.ServeMux) error {
 	return err
 }
 
-func Start() error {
+func GetServerAddress() string {
 	server_ip, err := gfnet.PublicIP()
 	if err != nil {
 		gflog.Error(err.Error())
 	}
-	address := fmt.Sprintf("%s:%d", server_ip, gfconfig.SERVER_PORT)
 
-	return startServer(address, getHandler())
+	address := fmt.Sprintf("%s:%d", server_ip, gfconfig.SERVER_PORT)
+	return address
+}
+
+func Start() error {
+	return startServer(getHandler())
 }

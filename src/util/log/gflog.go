@@ -2,7 +2,7 @@ package log
 
 import (
 	"fmt"
-	gfconfig "gofirst/pkg/config/webserver"
+	gfconfig "gofirst/src/config/webserver"
 	"log"
 	"os"
 )
