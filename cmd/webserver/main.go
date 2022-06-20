@@ -2,13 +2,19 @@ package main
 
 import (
 	"fmt"
-	gfservice "gofirst/pkg/service"
-	gflog "gofirst/pkg/util/log"
+	gfservice "gofirst/src/service"
+	gflog "gofirst/src/util/log"
 )
 
 func cleanup() {
 	gflog.Close()
 }
+
+/*
+TODO:
+Add websocket support
+Add database of movies and files
+*/
 
 func main() {
 	fmt.Printf("*** Starting application ***\n")
